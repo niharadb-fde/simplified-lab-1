@@ -13,14 +13,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-PROMPT_VERSION = "triage-v1"
+PROMPT_VERSION = "triage-v2"
 
 SYSTEM_PROMPT = (
-    "You triage bank complaints. Reply with JSON only, with keys: "
+    "You triage bank complaints. Reply with a single JSON object only; do not use Markdown fences. "
+    'Include all five keys every time, using this structure: {"category": "...", "priority": 1, '
+    '"team": "...", "summary": "...", "needs_human": false}. '
+    "Use exactly these fields and no others: "
     'category (one of "card_dispute", "fraud", "account_access", "charges", "other"), '
     "priority (integer 1-4, 1 = most urgent), "
-    'team (one of "disputes", "fraud_ops", "digital_support", "branch_services"), '
-    "summary (at most 200 characters, no account numbers)."
+    'team (one of "disputes", "fraud_ops", "digital_support", "branch_services", "human_review"), '
+    "summary (at most 200 characters, no account numbers), "
+    "needs_human (boolean). Route clear complaints to the best-matching team and set needs_human to false. "
+    "If the complaint is too ambiguous or lacks enough information to classify reliably, set category to "
+    '"other", team to "human_review", and needs_human to true. Use human_review for cases that cannot be '
+    "safely routed to one of the specialist teams. Keep the summary concise and factual."
 )
 
 
@@ -30,17 +37,13 @@ class LiveLLM:
     name = "live"
 
     def __init__(self):
-        api_key = os.environ.get("LLM_API_KEY") or os.environ.get("GEMINI_API_KEY")
-        if not api_key:
-            raise RuntimeError("Set LLM_API_KEY or GEMINI_API_KEY before using the live LLM.")
-
         from openai import AsyncOpenAI
 
-        self.model = os.environ.get("LLM_MODEL", "gemini-3.8-flash")
+        self.model = os.environ.get("LLM_MODEL", "gemma3:1b")
         self._client = AsyncOpenAI(
-            api_key=api_key,
-            base_url=os.environ.get("LLM_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/"),
-            timeout=10,
+            api_key="ollama",
+            base_url=os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1"),
+            timeout=int(os.environ.get("TRIAGE_TIMEOUT_S", 30)),
             max_retries=1,
         )
 
@@ -53,6 +56,7 @@ class LiveLLM:
                 {"role": "user", "content": text},
             ],
             temperature=0,
+            response_format={"type": "json_object"},
         )
         return resp.choices[0].message.content or ""
 

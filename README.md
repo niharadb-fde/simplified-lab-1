@@ -5,7 +5,8 @@ A FastAPI service that uses a live OpenAI-compatible LLM to classify bank compla
 ## Requirements
 
 - Python 3.11 or later
-- A Gemini API key
+- [Ollama](https://ollama.com/) installed and running
+- The `gemma3:1b` model
 - A virtual environment
 
 ## Setup
@@ -29,7 +30,13 @@ Create local environment configuration:
 Copy-Item .env.example .env
 ```
 
-Set `LLM_API_KEY` or `GEMINI_API_KEY` in `.env`. Do not commit the real key.
+Download the model if you have not already:
+
+```powershell
+ollama pull gemma3:1b
+```
+
+Ollama should be running locally at `http://localhost:11434`. No API key is needed.
 
 ## Run the API
 
@@ -46,10 +53,8 @@ Open the interactive API documentation at:
 
 | Variable | Required | Default | Description |
 |---|---:|---|---|
-| `LLM_API_KEY` | One of the API keys | None | API key used by the OpenAI-compatible client |
-| `GEMINI_API_KEY` | One of the API keys | None | Alternative API-key environment variable |
-| `LLM_MODEL` | No | `gemini-3.8-flash` | Model identifier |
-| `LLM_BASE_URL` | No | Gemini OpenAI-compatible endpoint | LLM API base URL |
+| `LLM_MODEL` | No | `gemma3:1b` | Ollama model identifier |
+| `LLM_BASE_URL` | No | `http://localhost:11434/v1` | Ollama OpenAI-compatible API URL |
 | `TRIAGE_TIMEOUT_S` | No | `5` | Maximum total triage request time |
 
 ## API
