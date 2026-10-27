@@ -1,0 +1,36 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+.build/
+build/
+dist/
+
+# Test and coverage output
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Logs and runtime output
+*.log
+logs/
+
+# Local editor and OS files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
